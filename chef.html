@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>👨🍳 情侣点餐 - 厨师端</title>
+    <style>
+        /* 与顾客端相似的样式 */
+        .order { background: #fff3f3; padding: 15px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>👨🍳 专属大厨模式</h1>
+    <input type="text" id="roomId" class="room-id" placeholder="输入房间号">
+    <button onclick="startListening()">开始监听订单 🔔</button>
+    <div id="orders"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        function startListening() {
+            const roomId = document.getElementById('roomId').value;
+            const db = firebase.database();
+            
+            db.ref(`rooms/${roomId}/orders`).on('child_added', (snapshot) => {
+                const order = snapshot.val();
+                if (order.status === 'pending') {
+                    showOrder(snapshot.key, order);
+                }
+            });
+        }
+
+        function showOrder(key, order) {
+            const ordersDiv = document.getElementById('orders');
+            const orderEl = document.createElement('div');
+            orderEl.className = 'order';
+            orderEl.innerHTML = `
+                <h3>📦 新订单 ${new Date(order.timestamp).toLocaleTimeString()}</h3>
+                <p>${order.foods.join(', ')}</p>
+                <button onclick="completeOrder('${key}')">完成烹饪 ✅</button>
+            `;
+            ordersDiv.appendChild(orderEl);
+        }
+
+        async function completeOrder(key) {
+            const roomId = document.getElementById('roomId').value;
+            const db = firebase.database();
+            await db.ref(`rooms/${roomId}/orders/${key}`).update({ status: 'completed' });
+        }
+    </script>
+</body>
+</html>

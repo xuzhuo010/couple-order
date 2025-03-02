@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>👫 情侣点餐 - 顾客端</title>
+    <style>
+        /* 添加你的CSS样式 */
+        body { font-family: Arial; text-align: center; padding: 20px; }
+        .room-id { padding: 10px; font-size: 18px; width: 200px; }
+        button { background: #ff6b6b; color: white; border: none; padding: 10px 20px; margin: 10px; }
+    </style>
+</head>
+<body>
+    <h1>❤️ 亲爱的今天吃什么？</h1>
+    <input type="text" id="roomId" class="room-id" placeholder="输入房间号">
+    <div id="menu">
+        <button onclick="selectFood('爱心牛排')">🥩 牛排</button>
+        <button onclick="selectFood('彩虹沙拉')">🥗 沙拉</button>
+    </div>
+    <button onclick="submitOrder()">发送订单 ✈️</button>
+
+    <!-- 引入Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <script src="firebase-config.js"></script>
+    <script>
+        let currentFoods = [];
+        
+        function selectFood(food) {
+            currentFoods.push(food);
+            alert(`已选择：${food}`);
+        }
+
+        async function submitOrder() {
+            const roomId = document.getElementById('roomId').value;
+            if (!roomId) return alert("需要输入房间号！");
+            
+            const db = firebase.database();
+            await db.ref(`rooms/${roomId}/orders`).push({
+                foods: currentFoods,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                status: "pending"
+            });
+            
+            currentFoods = [];
+            alert("订单已发送到TA的厨房！");
+        }
+    </script>
+</body>
+</html>

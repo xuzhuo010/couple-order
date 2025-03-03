@@ -13,39 +13,54 @@
     <button onclick="startListening()">开始监听订单 🔔</button>
     <div id="orders"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
+    <script type="module">
+        // 导入模块
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js";
+        import { 
+          getDatabase,
+          ref,
+          onChildAdded,
+          update,
+          serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js";
+      
+        // 导入配置
+        import { firebaseConfig } from './firebase-config.js';
+      
+        // 初始化
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+      
         function startListening() {
-            const roomId = document.getElementById('roomId').value;
-            const db = firebase.database();
-            
-            db.ref(`rooms/${roomId}/orders`).on('child_added', (snapshot) => {
-                const order = snapshot.val();
-                if (order.status === 'pending') {
-                    showOrder(snapshot.key, order);
-                }
-            });
+          const roomId = document.getElementById('roomId').value;
+          const ordersRef = ref(db, `rooms/${roomId}/orders`);
+      
+          // 实时监听新订单
+          onChildAdded(ordersRef, (snapshot) => {
+            const order = snapshot.val();
+            if (order.status === 'pending') {
+              showOrder(snapshot.key, order);
+            }
+          });
         }
-
+      
         function showOrder(key, order) {
-            const ordersDiv = document.getElementById('orders');
-            const orderEl = document.createElement('div');
-            orderEl.className = 'order';
-            orderEl.innerHTML = `
-                <h3>📦 新订单 ${new Date(order.timestamp).toLocaleTimeString()}</h3>
-                <p>${order.foods.join(', ')}</p>
-                <button onclick="completeOrder('${key}')">完成烹饪 ✅</button>
-            `;
-            ordersDiv.appendChild(orderEl);
-        }
+  const ordersDiv = document.getElementById('orders');
+  const orderEl = document.createElement('div');
+  orderEl.className = 'order';
+  
+  // 使用事件监听器绑定按钮
+  const button = document.createElement('button');
+  button.textContent = '完成烹饪 ✅';
+  button.addEventListener('click', () => completeOrder(key));
 
-        async function completeOrder(key) {
-            const roomId = document.getElementById('roomId').value;
-            const db = firebase.database();
-            await db.ref(`rooms/${roomId}/orders/${key}`).update({ status: 'completed' });
-        }
-    </script>
+  orderEl.innerHTML = `
+    <h3>📦 新订单 ${new Date(order.timestamp).toLocaleTimeString()}</h3>
+    <p>${order.foods.join(', ')}</p>
+  `;
+  orderEl.appendChild(button);
+  ordersDiv.appendChild(orderEl);
+}
+      </script>
 </body>
 </html>

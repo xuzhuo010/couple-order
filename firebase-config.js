@@ -1,21 +1,15 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js";
+import { getDatabase } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js";
 
-// Your web app's Firebase configuration
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyASblxqqr6OW5sCt6ZtSajT65C8hPMXLLs",
   authDomain: "couple-older.firebaseapp.com",
+  databaseURL: "https://couple-older-default-rtdb.firebaseio.com",
   projectId: "couple-older",
   storageBucket: "couple-older.firebasestorage.app",
   messagingSenderId: "1088295875332",
   appId: "1:1088295875332:web:919653b9b5d183288f5651"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
-  
-  // 初始化Firebase
-  firebase.initializeApp(firebaseConfig);
+export const db = getDatabase(app);

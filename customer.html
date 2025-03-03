@@ -1,49 +1,66 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>👫 情侣点餐 - 顾客端</title>
+    <title>👨🍳 情侣点餐 - 厨师端</title>
     <style>
-        /* 添加你的CSS样式 */
-        body { font-family: Arial; text-align: center; padding: 20px; }
-        .room-id { padding: 10px; font-size: 18px; width: 200px; }
-        button { background: #ff6b6b; color: white; border: none; padding: 10px 20px; margin: 10px; }
+        /* 与顾客端相似的样式 */
+        .order { background: #fff3f3; padding: 15px; margin: 10px; }
     </style>
 </head>
 <body>
-    <h1>❤️ 亲爱的今天吃什么？</h1>
+    <h1>👨🍳 专属大厨模式</h1>
     <input type="text" id="roomId" class="room-id" placeholder="输入房间号">
-    <div id="menu">
-        <button onclick="selectFood('爱心牛排')">🥩 牛排</button>
-        <button onclick="selectFood('彩虹沙拉')">🥗 沙拉</button>
-    </div>
-    <button onclick="submitOrder()">发送订单 ✈️</button>
+    <button onclick="startListening()">开始监听订单 🔔</button>
+    <div id="orders"></div>
 
-    <!-- 引入Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
-    <script src="firebase-config.js"></script>
-    <script>
-        let currentFoods = [];
-        
-        function selectFood(food) {
-            currentFoods.push(food);
-            alert(`已选择：${food}`);
+    <script type="module">
+        // 导入模块
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-app.js";
+        import { 
+          getDatabase,
+          ref,
+          onChildAdded,
+          update,
+          serverTimestamp
+        } from "https://www.gstatic.com/firebasejs/9.6.8/firebase-database.js";
+      
+        // 导入配置
+        import { firebaseConfig } from './firebase-config.js';
+      
+        // 初始化
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+      
+        function startListening() {
+          const roomId = document.getElementById('roomId').value;
+          const ordersRef = ref(db, `rooms/${roomId}/orders`);
+      
+          // 实时监听新订单
+          onChildAdded(ordersRef, (snapshot) => {
+            const order = snapshot.val();
+            if (order.status === 'pending') {
+              showOrder(snapshot.key, order);
+            }
+          });
         }
+      
+        function showOrder(key, order) {
+  const ordersDiv = document.getElementById('orders');
+  const orderEl = document.createElement('div');
+  orderEl.className = 'order';
+  
+  // 使用事件监听器绑定按钮
+  const button = document.createElement('button');
+  button.textContent = '完成烹饪 ✅';
+  button.addEventListener('click', () => completeOrder(key));
 
-        async function submitOrder() {
-            const roomId = document.getElementById('roomId').value;
-            if (!roomId) return alert("需要输入房间号！");
-            
-            const db = firebase.database();
-            await db.ref(`rooms/${roomId}/orders`).push({
-                foods: currentFoods,
-                timestamp: firebase.database.ServerValue.TIMESTAMP,
-                status: "pending"
-            });
-            
-            currentFoods = [];
-            alert("订单已发送到TA的厨房！");
-        }
-    </script>
+  orderEl.innerHTML = `
+    <h3>📦 新订单 ${new Date(order.timestamp).toLocaleTimeString()}</h3>
+    <p>${order.foods.join(', ')}</p>
+  `;
+  orderEl.appendChild(button);
+  ordersDiv.appendChild(orderEl);
+}
+      </script>
 </body>
 </html>
